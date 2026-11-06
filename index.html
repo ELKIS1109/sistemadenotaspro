@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mora Tech School Manager Pro - Suite Administrativa Escolar</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --azul-oscuro: #122f5f;
+            --azul-boton: #1c488e;
+            --azul-hover: #255bb5;
+            --verde-guardar: #198754;
+            --naranja-modificar: #e1730f;
+            --rojo-eliminar: #b42828;
+            --celeste-porcentaje: #0a73d7;
+            --gris-fondo: #f8fafc;
+            --borde: #cbd5e1;
+            --texto-principal: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { 
+            display: flex; 
+            min-height: 100vh; 
+            background-color: var(--gris-fondo); 
+            color: var(--texto-principal);
+            overflow-x: hidden;
+        }
+
+        .forzar-mayusculas {
+            text-transform: uppercase;
+        }
+
+        /* BARRA LATERAL INSTITUCIONAL */
+        .sidebar {
+            width: 245px;
+            background-color: var(--azul-oscuro);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 14px 10px;
+            flex-shrink: 0;
+            box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+        }
+
+        .header-docente { text-align: center; }
+        .logo-box { width: 68px; height: 68px; margin: 0 auto 6px auto; display: flex; align-items: center; justify-content: center; }
+        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .logo-box .tux-fallback { font-size: 42px; }
+
+        .header-docente h2 { font-size: 13px; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .header-docente .subtitulo { font-size: 9px; color: #cbd5e1; }
+        .header-docente .colegio { font-size: 11px; font-weight: bold; margin-bottom: 6px; }
+        .header-docente .docente { font-size: 11.5px; font-weight: bold; }
+        .header-docente .materia { font-size: 10px; color: #cbd5e1; margin-bottom: 4px; }
+        .header-docente .info-adicional {
+            font-size: 9px; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.15);
+            padding-top: 5px; margin-top: 5px; line-height: 1.3;
+        }
+
+        .menu-nav { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+        .btn-menu {
+            background-color: var(--azul-boton); color: white; border: none; padding: 8.5px 6px;
+            font-size: 11px; font-weight: 500; border-radius: 4px; cursor: pointer; text-align: center;
+            transition: background 0.2s;
+        }
+        .btn-menu:hover, .btn-menu.activo { background-color: var(--azul-hover); }
+        .btn-salir { background-color: var(--rojo-eliminar); color: white; border: none; padding: 9px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
+
+        .footer-sidebar {
+            text-align: center;
+            font-size: 9px;
+            color: #94a3b8;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 8px;
+        }
+
+        /* CONTENIDO PRINCIPAL */
+        .main-content { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            overflow-y: auto; 
+            background: #ffffff;
+            min-width: 0;
+            position: relative;
+        }
+        
+        .vista { display: none; padding: 14px 20px; flex: 1; }
+        .vista.activa { display: block; }
+
+        .titulo-modulo {
+            text-align: center; font-size: 15px; font-weight: bold;
+            color: var(--azul-oscuro); margin-bottom: 12px; text-transform: uppercase;
+        }
+
+        /* PANTALLA DE INICIO */
+        .inicio-contenedor {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 35px 20px;
+            text-align: center;
+        }
+        .inicio-logo-grande {
+            width: 130px;
+            height: 130px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .inicio-logo-grande img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .inicio-card {
+            background: #f8fafc;
+            border: 1px solid var(--borde);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 580px;
+            width: 100%;
+            margin-top: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+
+        /* GESTIÓN DE ESTUDIANTES */
+        .grid-estudiantes { 
+            display: grid; 
+            grid-template-columns: 1fr 1.2fr; 
+            gap: 14px; 
+        }
+
+        .panel-marco { border: 1px solid var(--borde); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; background: #fff; }
+        .legend-marco { font-size: 11px; font-weight: bold; color: #475569; margin-bottom: 8px; }
+
+        .form-row { display: flex; align-items: center; margin-bottom: 5px; font-size: 11px; flex-wrap: wrap; gap: 4px; }
+        .form-row label { width: 140px; color: #334155; flex-shrink: 0; }
+        .form-row input, .form-row select {
+            flex: 1; min-width: 110px; padding: 6px; font-size: 11px; border: 1px solid var(--borde); border-radius: 3px; outline: none;
+        }
+        .form-row input:focus, .form-row select:focus { border-color: var(--azul-boton); }
+
+        .btn-accion-form {
+            width: 100%; padding: 8px; color: white; border: none; border-radius: 4px;
+            font-weight: bold; font-size: 11px; cursor: pointer; margin-top: 4px;
+        }
+
+        .tabla-contenedor { 
+            width: 100%; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+            border: 1px solid var(--borde); 
+            border-radius: 4px;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 580px; }
+        table th {
+            background-color: #f1f5f9; color: #1e293b; font-weight: bold;
+            padding: 6px 4px; border: 1px solid var(--borde); position: sticky; top: 0; z-index: 2;
+        }
+        table td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; }
+
+        .preview-box {
+            background: #fff; border: 1px solid var(--borde); border-radius: 4px;
+            padding: 10px; margin-top: 8px; font-size: 10px;
+        }
+
+        /* CALIFICACIONES */
+        .barra-calificaciones {
+            display: flex; gap: 6px; align-items: center; background-color: #f8fafc;
+            padding: 8px; border: 1px solid var(--borde); border-radius: 6px; margin-bottom: 8px; font-size: 11px;
+            flex-wrap: wrap;
+        }
+        .btn-pequeno { padding: 6px 9px; font-size: 11px; font-weight: bold; border: none; border-radius: 3px; color: white; cursor: pointer; }
+        .input-nota { width: 100%; min-width: 28px; border: none; background: transparent; text-align: center; font-size: 11px; outline: none; padding: 4px 0; }
+        .input-final { font-weight: bold; background-color: #fed7aa !important; }
+
+        /* CONFIGURACIÓN */
+        .form-config { max-width: 650px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+        .logo-preview-box {
+            width: 80px; height: 80px; border: 2px dashed var(--borde); margin: 5px auto;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .logo-preview-box img { max-width: 100%; max-height: 100%; }
+
+        /* FOOTER DE DERECHOS DE AUTOR */
+        .footer-creditos {
+            text-align: center;
+            font-size: 10px;
+            color: #64748b;
+            padding: 8px 10px;
+            border-top: 1px solid #e2e8f0;
+            background: #ffffff;
+            margin-top: auto;
+        }
+
+        /* ADAPTABILIDAD MULTIDISPOSITIVO */
+        @media screen and (max-width: 950px) {
+            body { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; padding: 10px; box-shadow: none; }
+            .menu-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 4px; }
+            .grid-estudiantes { grid-template-columns: 1fr; }
+            .form-row label { width: 100%; margin-bottom: 2px; }
+            table { min-width: 700px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA LATERAL INSTITUCIONAL -->
+    <aside class="sidebar">
+        <div>
+            <div class="header-docente">
+                <div class="logo-box" id="sidebarLogoContainer">
+                    <span class="tux-fallback">🐧</span>
+                </div>
+                <h2>SUITE ESCOLAR</h2>
+                <div class="subtitulo">PLANTEL EDUCATIVO</div>
+                <div class="colegio" id="lblColegio">JOSÉ DOLORES MOSCOTE</div>
+                <div class="docente" id="lblDocente">Prof. Elkis Mora</div>
+                <div class="materia" id="lblMateria">CiberSeguridad / Informática</div>
+                <div class="info-adicional">
+                    REGIONAL / AÑO LECTIVO<br>
+                    <strong id="lblRegional">Panamá Centro</strong><br>
+                    Periodo: <span id="lblPeriodo">2026</span><br>
+                    <span id="lblCorreo">elkis.mora@meduca.edu.pa</span>
+                </div>
+            </div>
+
+            <nav class="menu-nav">
+                <button class="btn-menu activo" onclick="mostrarVista('inicio', this)">Inicio</button>
+                <button class="btn-menu" onclick="mostrarVista('estudiantes', this)">Gestión de Estudiantes</button>
+                <button class="btn-menu" onclick="mostrarVista('calificaciones', this)">Registro de Calificaciones</button>
+                <button class="btn-menu" onclick="mostrarVista('grupos', this)">Gestión de Grupos</button>
+                <button class="btn-menu" onclick="mostrarVista('configuracion', this)">Configuración</button>
+                <button class="btn-menu" style="background-color: var(--verde-guardar);" onclick="descargarBackup()">Forzar Respaldo</button>
+                <button class="btn-menu" style="background-color: var(--naranja-modificar);" onclick="document.getElementById('inputRestaurar').click()">Restaurar Backup</button>
+                <input type="file" id="inputRestaurar" style="display: none;" accept=".json" onchange="restaurarBackup(event)">
+            </nav>
+        </div>
+
+        <div>
+            <button class="btn-salir" style="width: 100%;" onclick="cerrarSesionSegura()">Salir</button>
+            <div class="footer-sidebar">
+                © Mgtr. Elkis H. Mora Ch.
+            </div>
+        </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="main-content">
+
+        <!-- VISTA: INICIO -->
+        <section id="vista-inicio" class="vista activa">
+            <div class="inicio-contenedor">
+                <div class="inicio-logo-grande" id="inicioLogoContainer">
+                    <span style="font-size: 70px;">🐧</span>
+                </div>
+                <h1 style="color: var(--azul-oscuro); font-size: 20px; font-weight: bold; margin-bottom: 4px;" id="inicioTituloColegio">
+                    JOSÉ DOLORES MOSCOTE
+                </h1>
+                <p style="color: #64748b; font-size: 13px;">Suite Administrativa Escolar y Control Académico MEDUCA</p>
+
+                <div class="inicio-card">
+                    <h3 style="font-size: 13px; color: var(--azul-boton); border-bottom: 1px solid var(--borde); padding-bottom: 6px; margin-bottom: 10px;">
+                        INFORMACIÓN DE LA SESIÓN ACTIVA
+                    </h3>
+                    <div style="font-size: 11px; line-height: 1.8; color: #334155; text-align: left;">
+                        <strong>Docente Responsable:</strong> <span id="inicioDocente">Prof. Elkis Mora</span><br>
+                        <strong>Especialidad / Materia:</strong> <span id="inicioMateria">CiberSeguridad / Informática</span><br>
+                        <strong>Regional Educativa:</strong> <span id="inicioRegional">Panamá Centro</span><br>
+                        <strong>Periodo Lectivo:</strong> <span id="inicioPeriodo">2026</span><br>
+                        <strong>Total de Estudiantes en Sistema:</strong> <span id="inicioTotalAlumnos" style="font-weight: bold; color: var(--verde-guardar);">0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA: GESTIÓN DE ESTUDIANTES -->
+        <section id="vista-estudiantes" class="vista">
+            <h2 class="titulo-modulo">MÓDULO UNIFICADO DE GESTIÓN DE ESTUDIANTES</h2>
+            <div class="grid-estudiantes">
+                
+                <!-- Formulario Oficial -->
+                <div class="panel-marco">
+                    <span class="legend-marco">Datos de Matrícula Oficial (MEDUCA)</span>
+                    <div class="form-row"><label>Código Registro:</label><input type="text" id="txtCodigo" class="forzar-mayusculas" value="AL-2026-001"></div>
+                    <div class="form-row"><label>Nombre Completo (*):</label><input type="text" id="txtNombre" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                    <div class="form-row"><label>Cédula Alumno (*):</label><input type="text" id="txtCedula" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                    <div class="form-row"><label>Materia / Asignatura (*):</label><input type="text" id="txtMateria" class="forzar-mayusculas" value="TECNOLOGÍA DE LA INFORMACIÓN" oninput="this.value = this.value.toUpperCase()"></div>
+                    <div class="form-row"><label>Dirección Alumno:</label><input type="text" id="txtDireccion" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                    <div class="form-row"><label>Fecha Nacimiento:</label><input type="text" id="txtNacimiento" value="15/03/2011"></div>
+                    <div class="form-row">
+                        <label>Edad / Sexo:</label>
+                        <input type="number" id="txtEdad" value="17" style="max-width: 60px; margin-right: 6px;">
+                        <select id="cbSexo" style="max-width: 90px;"><option value="M">M</option><option value="F">F</option></select>
+                    </div>
+                    <div class="form-row"><label>Teléfono Alumno:</label><input type="text" id="txtTelefono"></div>
+                    <div class="form-row"><label>Email Alumno:</label><input type="email" id="txtEmail"></div>
+                    <div class="form-row"><label>Nombre Acudiente:</label><input type="text" id="txtAcudiente" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                    <div class="form-row"><label>Dirección Acudiente:</label><input type="text" id="txtDireccionAcudiente" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                    <div class="form-row">
+                        <label>Parentesco / Tel:</label>
+                        <select id="cbParentesco" style="max-width: 90px; margin-right: 6px;">
+                            <option value="Mamá">Mamá</option><option value="Papá">Papá</option><option value="Tutor">Tutor</option>
+                        </select>
+                        <input type="text" id="txtTelAcudiente" placeholder="Teléfono">
+                    </div>
+                    <div class="form-row">
+                        <label>Lugar Trabajo Acudiente:</label>
+                        <select id="cbTrabajo">
+                            <option value="Ama de casa">Ama de casa</option>
+                            <option value="Independiente">Independiente</option>
+                            <option value="Sector Público">Sector Público</option>
+                            <option value="Sector Privado">Sector Privado</option>
+                        </select>
+                    </div>
+
+                    <!-- ESTRUCTURA ESCOLAR -->
+                    <div class="form-row">
+                        <label>Estructura Escolar (*):</label>
+                        <select id="cbNivel" style="max-width: 60px; margin-right: 4px;">
+                            <option value="1°">1°</option><option value="2°">2°</option><option value="3°">3°</option>
+                            <option value="4°">4°</option><option value="5°">5°</option><option value="6°">6°</option>
+                            <option value="7°">7°</option><option value="8°">8°</option><option value="9°">9°</option>
+                            <option value="10°">10°</option><option value="11°">11°</option><option value="12°" selected>12°</option>
+                        </select>
+                        <select id="cbLetra" style="max-width: 50px; margin-right: 4px;">
+                            <option value="A" selected>A</option><option value="B">B</option><option value="C">C</option>
+                            <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+                            <option value="G">G</option><option value="H">H</option><option value="I">I</option>
+                            <option value="J">J</option>
+                        </select>
+                        <select id="cbModalidad" style="max-width: 90px; margin-right: 4px;" onchange="ajustarSubmenuBachilleratoForm()">
+                            <option value="Primaria">Primaria</option>
+                            <option value="Premedia">Premedia</option>
+                            <option value="Media" selected>Media</option>
+                        </select>
+                        <select id="cbEspecialidad">
+                            <option value="Tecnología" selected>Tecnología</option>
+                            <option value="Turismo">Turismo</option>
+                            <option value="Comercio">Comercio</option>
+                            <option value="Ciencias">Ciencias</option>
+                            <option value="Humanidades">Humanidades</option>
+                            <option value="Marítimo">Marítimo</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-accion-form" style="background-color: var(--verde-guardar);" onclick="guardarEstudiante()">✔ Guardar</button>
+                    <button class="btn-accion-form" style="background-color: var(--naranja-modificar);" onclick="modificarEstudiante()">📝 Modificar Registro</button>
+                    <button class="btn-accion-form" style="background-color: var(--azul-oscuro);" onclick="limpiarFormularioEstudiante()">Nuevo Registro</button>
+                </div>
+
+                <!-- Expediente Oficial y Búsqueda -->
+                <div class="panel-marco">
+                    <span class="legend-marco">Búsqueda Avanzada y Expediente Oficial</span>
+                    <div style="display: flex; gap: 5px; margin-bottom: 8px; flex-wrap: wrap;">
+                        <input type="text" id="txtBuscar" class="forzar-mayusculas" placeholder="Cédula o Código" style="flex: 1; min-width: 100px; padding: 6px; font-size: 11px;" oninput="this.value = this.value.toUpperCase(); filtrarTablaEnVivo();">
+                        <button class="btn-pequeno" style="background-color: var(--azul-boton);" onclick="buscarEstudiante()">Buscar</button>
+                        <button class="btn-pequeno" style="background-color: var(--verde-guardar);" title="Imprimir lo que se está buscando en pantalla" onclick="imprimirBusquedaPantalla()">🖨 Imprimir Búsqueda</button>
+                        <button class="btn-pequeno" style="background-color: #0d9488;" onclick="imprimirExpedienteSeleccionado()">Ficha</button>
+                        <button class="btn-pequeno" style="background-color: var(--rojo-eliminar);" onclick="eliminarEstudiante()">Baja</button>
+                    </div>
+
+                    <div class="tabla-contenedor" style="max-height: 160px; margin-bottom: 6px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Cédula</th>
+                                    <th>Nivel</th>
+                                    <th>Grupo</th>
+                                    <th>Materia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoExpediente"></tbody>
+                        </table>
+                    </div>
+
+                    <span class="legend-marco" style="margin-top: 4px;">Vista Previa de Expediente:</span>
+                    <div class="preview-box" id="boxPrevisualizacionExpediente">
+                        <p style="text-align: center; color: #94a3b8; padding: 15px 0;">
+                            Al registrar o seleccionar un estudiante, aquí aparecerá la ficha con código QR lista para imprimir.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- VISTA: REGISTRO DE CALIFICACIONES -->
+        <section id="vista-calificaciones" class="vista">
+            <div class="barra-calificaciones">
+                <label>Asignatura:</label>
+                <select id="filtroAsignatura" onchange="renderizarTablaNotas()"></select>
+                <button class="btn-pequeno" style="background-color: var(--azul-oscuro);" title="Agregar Materia" onclick="agregarMateriaManual()">➕</button>
+
+                <label style="margin-left: 4px;">Grupo:</label>
+                <select id="filtroGrupo" onchange="renderizarTablaNotas()"></select>
+                
+                <label>Periodo:</label>
+                <select id="filtroPeriodo" onchange="renderizarTablaNotas()">
+                    <option value="1">1° Trimestre</option>
+                    <option value="2">2° Trimestre</option>
+                    <option value="3">3° Trimestre</option>
+                </select>
+                
+                <button class="btn-pequeno" style="background-color: var(--azul-boton);" onclick="guardarCalificaciones(true)">💾 Guardar</button>
+                <button class="btn-pequeno" style="background-color: var(--verde-guardar);" onclick="imprimirRegistroOficialEvaluacion()">📖 Libreta</button>
+                <button class="btn-pequeno" style="background-color: var(--azul-oscuro);" onclick="imprimirInformeAnual()">📊 Informe Anual</button>
+                <button class="btn-pequeno" style="background-color: var(--celeste-porcentaje);" onclick="imprimirCuadroPorcentajes()">📈 Porcentaje</button>
+            </div>
+
+            <div class="tabla-contenedor" style="height: calc(100vh - 165px);">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25px;">N°</th>
+                            <th style="width: 200px;">Nombre del Estudiante</th>
+                            <th>N1</th><th>N2</th><th>N3</th><th>N4</th><th>N5</th><th>N6</th><th>N7</th><th>N8</th>
+                            <th style="background-color: #e2e8f0;">P.ND</th>
+                            <th>A1</th><th>A2</th><th>A3</th><th>A4</th><th>A5</th>
+                            <th style="background-color: #e2e8f0;">P.NA</th>
+                            <th>Exam</th>
+                            <th style="background-color: #fed7aa; width: 55px;">FINAL</th>
+                            <th>A</th><th>T</th><th>F</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoNotas"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VISTA: GESTIÓN DE GRUPOS -->
+        <section id="vista-grupos" class="vista">
+            <h2 class="titulo-modulo">CONSOLIDADO DE MATRÍCULA POR GRUPOS OFICIALES</h2>
+            
+            <div class="barra-calificaciones" style="margin-bottom: 12px; justify-content: space-between;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <label>Filtrar Grado:</label>
+                    <select id="filtroGrupoGrado" onchange="renderizarConsolidadoGrupos()">
+                        <option value="TODOS">Todos los Grados</option>
+                        <option value="1°">1°</option><option value="2°">2°</option><option value="3°">3°</option>
+                        <option value="4°">4°</option><option value="5°">5°</option><option value="6°">6°</option>
+                        <option value="7°">7°</option><option value="8°">8°</option><option value="9°">9°</option>
+                        <option value="10°">10°</option><option value="11°">11°</option><option value="12°">12°</option>
+                    </select>
+
+                    <label>Sección / Nivel:</label>
+                    <select id="filtroGrupoSeccion" onchange="ajustarFiltroBachillerGrupos(); renderizarConsolidadoGrupos();">
+                        <option value="TODOS">Todas las Secciones</option>
+                        <option value="Primaria">Primaria (1° a 6°)</option>
+                        <option value="Premedia">Premedia (7° a 9°)</option>
+                        <option value="Media">Media (10° a 12°)</option>
+                    </select>
+
+                    <div id="boxSubmenuBachiller" style="display: none; align-items: center; gap: 4px;">
+                        <label>Bachiller:</label>
+                        <select id="filtroGrupoBachiller" onchange="renderizarConsolidadoGrupos()">
+                            <option value="TODOS">Todos los Bachilleres</option>
+                            <option value="Tecnología">Tecnología</option>
+                            <option value="Ciencias">Ciencias</option>
+                            <option value="Comercio">Comercio</option>
+                            <option value="Humanidades">Humanidades</option>
+                            <option value="Turismo">Turismo</option>
+                            <option value="Marítimo">Marítimo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <button class="btn-pequeno" style="background-color: var(--verde-guardar); font-size: 11px; padding: 6px 12px;" onclick="imprimirConsolidadoGruposPantalla()">🖨 Imprimir Consolidado</button>
+                    <button class="btn-pequeno" style="background-color: var(--rojo-eliminar);" onclick="eliminarGrupoSeleccionado()">🗑 Eliminar Grupo Completo</button>
+                </div>
+            </div>
+
+            <div class="tabla-contenedor" style="max-height: calc(100vh - 180px);">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">Sel</th>
+                            <th>Grupo / Grado</th>
+                            <th>Sección / Modalidad</th>
+                            <th>Especialidad / Bachiller</th>
+                            <th>Total Matriculados</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoGrupos"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VISTA: CONFIGURACIÓN -->
+        <section id="vista-configuracion" class="vista">
+            <h2 class="titulo-modulo">Configuración del Sistema y Datos Institucionales</h2>
+            <div class="panel-marco form-config">
+                <span class="legend-marco">Identidad Gráfica y Datos del Plantel</span>
+                
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <div class="logo-preview-box" id="logoPreviewBox">
+                        <span style="font-size: 32px;">🐧</span>
+                    </div>
+                    <input type="file" id="inputLogo" accept="image/*" style="display: none;" onchange="procesarSubidaLogo(event)">
+                    <button class="btn-pequeno" style="background-color: var(--azul-boton);" onclick="document.getElementById('inputLogo').click()">Subir Logo</button>
+                    <button class="btn-pequeno" style="background-color: var(--rojo-eliminar);" onclick="eliminarLogo()">Restablecer</button>
+                </div>
+
+                <div class="form-row"><label>Nombre del Plantel:</label><input type="text" id="cfgColegio" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                <div class="form-row"><label>Docente Responsable:</label><input type="text" id="cfgDocente" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                <div class="form-row"><label>Asignatura Oficial:</label><input type="text" id="cfgMateria" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                <div class="form-row"><label>Regional Educativa:</label><input type="text" id="cfgRegional" class="forzar-mayusculas" oninput="this.value = this.value.toUpperCase()"></div>
+                <div class="form-row"><label>Año Lectivo:</label><input type="text" id="cfgPeriodo"></div>
+                <div class="form-row"><label>Contacto Oficial (Email):</label><input type="email" id="cfgCorreo"></div>
+                <div class="form-row"><label>Sitio Web Oficial:</label><input type="text" id="cfgWeb"></div>
+
+                <button class="btn-accion-form" style="background-color: var(--verde-guardar); margin-top: 10px;" onclick="guardarConfiguracion()">✔ Guardar Configuración</button>
+            </div>
+        </section>
+
+        <!-- PIE DE PÁGINA CON DERECHOS DE AUTOR -->
+        <footer class="footer-creditos">
+            © Mgtr. Elkis H. Mora Ch. - Mora Tech School Manager Pro | Suite Administrativa Escolar MEDUCA - Todos los derechos reservados
+        </footer>
+
+    </main>
+
+    <script>
+        // PERSISTENCIA LOCAL
+        let cfg = JSON.parse(localStorage.getItem('mora_config')) || {
+            colegio: "JOSÉ DOLORES MOSCOTE",
+            docente: "PROF. ELKIS MORA",
+            materia: "CIBERSEGURIDAD / INFORMÁTICA",
+            regional: "PANAMÁ CENTRO",
+            periodo: "2026",
+            correo: "elkis.mora@meduca.edu.pa",
+            web: "www.pcnetpanama.com",
+            logo: ""
+        };
+
+        let estudiantes = JSON.parse(localStorage.getItem('mora_estudiantes')) || [];
+        let notas = JSON.parse(localStorage.getItem('mora_calificaciones')) || {};
+        let listaMaterias = JSON.parse(localStorage.getItem('mora_materias')) || [];
+        let filaSeleccionadaIndex = -1;
+        let grupoSeleccionadoParaEliminar = null;
+
+        window.onload = function() {
+            aplicarConfiguracionEnPantalla();
+            cargarComboMaterias();
+            actualizarComboGrupos();
+            renderizarTablaExpediente(estudiantes);
+            renderizarTablaNotas();
+            limpiarFormularioEstudiante();
+        };
+
+        function sincronizarTodoEnMemoria() {
+            guardarCalificaciones(false);
+            localStorage.setItem('mora_estudiantes', JSON.stringify(estudiantes));
+            localStorage.setItem('mora_config', JSON.stringify(cfg));
+            localStorage.setItem('mora_materias', JSON.stringify(listaMaterias));
+            localStorage.setItem('mora_calificaciones', JSON.stringify(notas));
+            actualizarTotalAlumnosInicio();
+        }
+
+        window.addEventListener('beforeunload', function() {
+            sincronizarTodoEnMemoria();
+        });
+
+        function cerrarSesionSegura() {
+            sincronizarTodoEnMemoria();
+            if (confirm("¿Desea salir del sistema? Todos sus datos ya están guardados permanentemente en este dispositivo.")) {
+                document.body.innerHTML = `
+                    <div style="display:flex; height:100vh; width:100vw; align-items:center; justify-content:center; flex-direction:column; background:#122f5f; color:white; font-family:sans-serif; text-align:center; padding:20px;">
+                        <h2 style="margin-bottom:10px;">Sesión Finalizada con Éxito</h2>
+                        <p style="color:#cbd5e1; font-size:14px;">Todos sus datos quedaron asegurados permanentemente.</p>
+                        <p style="color:#94a3b8; font-size:12px; margin-top:8px;">Ya puede cerrar esta pestaña del navegador sin ningún aviso.</p>
+                        <div style="margin-top:25px; font-size:11px; color:#cbd5e1;">© Mgtr. Elkis H. Mora Ch.</div>
+                    </div>
+                `;
+            }
+        }
+
+        function mostrarVista(vistaId, btnElement = null) {
+            document.querySelectorAll('.vista').forEach(v => v.classList.remove('activa'));
+            document.querySelectorAll('.btn-menu').forEach(b => b.classList.remove('activo'));
+
+            const targetVista = document.getElementById(`vista-${vistaId}`);
+            if (targetVista) {
+                targetVista.classList.add('activa');
+            }
+
+            // Marcar botón activo de forma 100% segura sin depender del objeto global event
+            if (btnElement && btnElement.classList) {
+                btnElement.classList.add('activo');
+            } else if (typeof event !== 'undefined' && event && event.target && event.target.classList) {
+                event.target.classList.add('activo');
+            } else {
+                const btnEncontrado = Array.from(document.querySelectorAll('.btn-menu')).find(b => {
+                    const attr = b.getAttribute('onclick') || '';
+                    return attr.includes(`'${vistaId}'`) || attr.includes(`"${vistaId}"`);
+                });
+                if (btnEncontrado) btnEncontrado.classList.add('activo');
+            }
+
+            if (vistaId === 'inicio') aplicarConfiguracionEnPantalla();
+            if (vistaId === 'calificaciones') {
+                actualizarComboGrupos();
+                renderizarTablaNotas();
+            }
+            if (vistaId === 'grupos') renderizarConsolidadoGrupos();
+            if (vistaId === 'configuracion') cargarFormularioConfiguracion();
+        }
+
+        function ajustarSubmenuBachilleratoForm() {
+            const mod = document.getElementById('cbModalidad').value;
+            const esp = document.getElementById('cbEspecialidad');
+            if (mod === 'Media') {
+                esp.style.display = 'inline-block';
+                esp.innerHTML = `
+                    <option value="Tecnología" selected>Tecnología</option>
+                    <option value="Ciencias">Ciencias</option>
+                    <option value="Comercio">Comercio</option>
+                    <option value="Humanidades">Humanidades</option>
+                    <option value="Turismo">Turismo</option>
+                    <option value="Marítimo">Marítimo</option>
+                `;
+            } else {
+                esp.innerHTML = `<option value="Educación Básica General" selected>Básica General</option>`;
+            }
+        }
+
+        function ajustarFiltroBachillerGrupos() {
+            const sec = document.getElementById('filtroGrupoSeccion').value;
+            const box = document.getElementById('boxSubmenuBachiller');
+            box.style.display = (sec === 'Media') ? 'flex' : 'none';
+        }
+
+        function cargarComboMaterias() {
+            const combo = document.getElementById('filtroAsignatura');
+            const selActual = combo.value;
+            combo.innerHTML = '';
+            
+            const materiasActivas = new Set();
+            estudiantes.forEach(e => {
+                if (e.materia && e.materia.trim()) materiasActivas.add(e.materia.trim().toUpperCase());
+            });
+            listaMaterias.forEach(m => {
+                if (m && m.trim()) materiasActivas.add(m.trim().toUpperCase());
+            });
+
+            if (materiasActivas.size === 0) {
+                materiasActivas.add("TECNOLOGÍA DE LA INFORMACIÓN");
+            }
+
+            materiasActivas.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.innerText = m;
+                combo.appendChild(opt);
+            });
+
+            if (selActual && materiasActivas.has(selActual)) {
+                combo.value = selActual;
+            }
+        }
+
+        function actualizarComboGrupos() {
+            const combo = document.getElementById('filtroGrupo');
+            const gruposSet = new Set();
+            estudiantes.forEach(e => {
+                if (e.grupo && e.grupo.trim()) gruposSet.add(e.grupo.trim().toUpperCase());
+            });
+            
+            if (gruposSet.size === 0) {
+                gruposSet.add("12° A TECNOLOGÍA");
+            }
+
+            const selActual = combo.value;
+            combo.innerHTML = '';
+            gruposSet.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.innerText = g;
+                combo.appendChild(opt);
+            });
+            if (selActual && gruposSet.has(selActual)) {
+                combo.value = selActual;
+            }
+        }
+
+        function agregarMateriaManual() {
+            const nueva = prompt("Ingrese el nombre de la nueva Asignatura / Materia:");
+            if (nueva && nueva.trim().length > 0) {
+                const materiaLimpia = nueva.trim().toUpperCase();
+                if (!listaMaterias.includes(materiaLimpia)) {
+                    listaMaterias.push(materiaLimpia);
+                    localStorage.setItem('mora_materias', JSON.stringify(listaMaterias));
+                    cargarComboMaterias();
+                    document.getElementById('filtroAsignatura').value = materiaLimpia;
+                    document.getElementById('txtMateria').value = materiaLimpia;
+                    sincronizarTodoEnMemoria();
+                    renderizarTablaNotas();
+                    alert(`Materia "${materiaLimpia}" agregada correctamente.`);
+                } else {
+                    document.getElementById('filtroAsignatura').value = materiaLimpia;
+                    renderizarTablaNotas();
+                }
+            }
+        }
+
+        function aplicarConfiguracionEnPantalla() {
+            document.getElementById('lblColegio').innerText = cfg.colegio.toUpperCase();
+            document.getElementById('lblDocente').innerText = cfg.docente.toUpperCase();
+            document.getElementById('lblMateria').innerText = cfg.materia.toUpperCase();
+            document.getElementById('lblRegional').innerText = cfg.regional.toUpperCase();
+            document.getElementById('lblPeriodo').innerText = cfg.periodo;
+            document.getElementById('lblCorreo').innerText = cfg.correo;
+
+            document.getElementById('inicioTituloColegio').innerText = cfg.colegio.toUpperCase();
+            document.getElementById('inicioDocente').innerText = cfg.docente.toUpperCase();
+            document.getElementById('inicioMateria').innerText = cfg.materia.toUpperCase();
+            document.getElementById('inicioRegional').innerText = cfg.regional.toUpperCase();
+            document.getElementById('inicioPeriodo').innerText = cfg.periodo;
+            actualizarTotalAlumnosInicio();
+
+            const logoContainer = document.getElementById('sidebarLogoContainer');
+            const inicioLogoContainer = document.getElementById('inicioLogoContainer');
+            if (cfg.logo) {
+                logoContainer.innerHTML = `<img src="${cfg.logo}" alt="Logo">`;
+                inicioLogoContainer.innerHTML = `<img src="${cfg.logo}" alt="Logo Principal">`;
+            } else {
+                logoContainer.innerHTML = `<span class="tux-fallback">🐧</span>`;
+                inicioLogoContainer.innerHTML = `<span style="font-size: 70px;">🐧</span>`;
+            }
+        }
+
+        function actualizarTotalAlumnosInicio() {
+            document.getElementById('inicioTotalAlumnos').innerText = estudiantes.length;
+        }
+
+        function cargarFormularioConfiguracion() {
+            document.getElementById('cfgColegio').value = cfg.colegio;
+            document.getElementById('cfgDocente').value = cfg.docente;
+            document.getElementById('cfgMateria').value = cfg.materia;
+            document.getElementById('cfgRegional').value = cfg.regional;
+            document.getElementById('cfgPeriodo').value = cfg.periodo;
+            document.getElementById('cfgCorreo').value = cfg.correo;
+            document.getElementById('cfgWeb').value = cfg.web;
+
+            const preview = document.getElementById('logoPreviewBox');
+            if (cfg.logo) {
+                preview.innerHTML = `<img src="${cfg.logo}" alt="Logo">`;
+            } else {
+                preview.innerHTML = `<span style="font-size: 32px;">🐧</span>`;
+            }
+        }
+
+        function procesarSubidaLogo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                cfg.logo = e.target.result;
+                document.getElementById('logoPreviewBox').innerHTML = `<img src="${cfg.logo}" alt="Logo">`;
+                aplicarConfiguracionEnPantalla();
+                sincronizarTodoEnMemoria();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function eliminarLogo() {
+            cfg.logo = "";
+            document.getElementById('logoPreviewBox').innerHTML = `<span style="font-size: 32px;">🐧</span>`;
+            aplicarConfiguracionEnPantalla();
+            sincronizarTodoEnMemoria();
+        }
+
+        function guardarConfiguracion() {
+            cfg.colegio = document.getElementById('cfgColegio').value.trim().toUpperCase();
+            cfg.docente = document.getElementById('cfgDocente').value.trim().toUpperCase();
+            cfg.materia = document.getElementById('cfgMateria').value.trim().toUpperCase();
+            cfg.regional = document.getElementById('cfgRegional').value.trim().toUpperCase();
+            cfg.periodo = document.getElementById('cfgPeriodo').value.trim();
+            cfg.correo = document.getElementById('cfgCorreo').value.trim();
+            cfg.web = document.getElementById('cfgWeb').value.trim();
+
+            aplicarConfiguracionEnPantalla();
+            sincronizarTodoEnMemoria();
+            alert("Configuración institucional guardada.");
+        }
+
+        // GUARDAR ESTUDIANTE NUEVO
+        function guardarEstudiante() {
+            const cedula = document.getElementById('txtCedula').value.trim().toUpperCase();
+            const nombre = document.getElementById('txtNombre').value.trim().toUpperCase();
+            const materia = document.getElementById('txtMateria').value.trim().toUpperCase();
+
+            if (!cedula || !nombre) {
+                alert("Debe ingresar Cédula y Nombre Completo.");
+                return;
+            }
+
+            const existeCedula = estudiantes.some(e => e.cedula === cedula);
+            if (existeCedula) {
+                alert(`Ya existe un estudiante registrado con la cédula "${cedula}". Si desea actualizar sus datos, selecciónelo en la lista y haga clic en "Modificar Registro".`);
+                return;
+            }
+
+            const mod = document.getElementById('cbModalidad').value;
+            const esp = (mod === 'Media') ? document.getElementById('cbEspecialidad').value : 'Básica General';
+            const grupoCalculado = `${document.getElementById('cbNivel').value} ${document.getElementById('cbLetra').value} ${esp}`.toUpperCase();
+
+            const est = {
+                codigo: document.getElementById('txtCodigo').value.trim().toUpperCase(),
+                nombre: nombre,
+                cedula: cedula,
+                materia: materia,
+                direccion: document.getElementById('txtDireccion').value.trim().toUpperCase(),
+                nacimiento: document.getElementById('txtNacimiento').value.trim(),
+                edad: document.getElementById('txtEdad').value,
+                sexo: document.getElementById('cbSexo').value === 'M' ? 'Masculino' : 'Femenino',
+                telefono: document.getElementById('txtTelefono').value.trim(),
+                email: document.getElementById('txtEmail').value.trim(),
+                acudiente: document.getElementById('txtAcudiente').value.trim().toUpperCase(),
+                direccionAcudiente: document.getElementById('txtDireccionAcudiente').value.trim().toUpperCase(),
+                parentesco: document.getElementById('cbParentesco').value,
+                telAcudiente: document.getElementById('txtTelAcudiente').value.trim(),
+                trabajoAcudiente: document.getElementById('cbTrabajo').value,
+                nivel: document.getElementById('cbNivel').value,
+                letra: document.getElementById('cbLetra').value,
+                modalidad: mod,
+                especialidad: esp,
+                grupo: grupoCalculado
+            };
+
+            estudiantes.push(est);
+
+            if (!listaMaterias.includes(materia)) {
+                listaMaterias.push(materia);
+            }
+
+            sincronizarTodoEnMemoria();
+            cargarComboMaterias();
+            actualizarComboGrupos();
+            renderizarTablaExpediente(estudiantes);
+            generarPrevisualizacionEnVivo(est);
+
+            document.getElementById('filtroAsignatura').value = materia;
+            document.getElementById('filtroGrupo').value = grupoCalculado;
+            renderizarTablaNotas();
+
+            limpiarFormularioEstudiante();
+
+            alert(`Estudiante ${est.nombre} guardado con éxito. El formulario está listo para el siguiente alumno.`);
+        }
+
+        // MODIFICAR ESTUDIANTE EXISTENTE
+        function modificarEstudiante() {
+            if (filaSeleccionadaIndex === -1 || !estudiantes[filaSeleccionadaIndex]) {
+                alert("Seleccione primero un estudiante en la lista de la derecha para modificarlo.");
+                return;
+            }
+
+            const cedula = document.getElementById('txtCedula').value.trim().toUpperCase();
+            const nombre = document.getElementById('txtNombre').value.trim().toUpperCase();
+            const materia = document.getElementById('txtMateria').value.trim().toUpperCase();
+
+            if (!cedula || !nombre) {
+                alert("La cédula y el nombre no pueden quedar vacíos.");
+                return;
+            }
+
+            const mod = document.getElementById('cbModalidad').value;
+            const esp = (mod === 'Media') ? document.getElementById('cbEspecialidad').value : 'Básica General';
+            const grupoCalculado = `${document.getElementById('cbNivel').value} ${document.getElementById('cbLetra').value} ${esp}`.toUpperCase();
+
+            estudiantes[filaSeleccionadaIndex] = {
+                codigo: document.getElementById('txtCodigo').value.trim().toUpperCase(),
+                nombre: nombre,
+                cedula: cedula,
+                materia: materia,
+                direccion: document.getElementById('txtDireccion').value.trim().toUpperCase(),
+                nacimiento: document.getElementById('txtNacimiento').value.trim(),
+                edad: document.getElementById('txtEdad').value,
+                sexo: document.getElementById('cbSexo').value === 'M' ? 'Masculino' : 'Femenino',
+                telefono: document.getElementById('txtTelefono').value.trim(),
+                email: document.getElementById('txtEmail').value.trim(),
+                acudiente: document.getElementById('txtAcudiente').value.trim().toUpperCase(),
+                direccionAcudiente: document.getElementById('txtDireccionAcudiente').value.trim().toUpperCase(),
+                parentesco: document.getElementById('cbParentesco').value,
+                telAcudiente: document.getElementById('txtTelAcudiente').value.trim(),
+                trabajoAcudiente: document.getElementById('cbTrabajo').value,
+                nivel: document.getElementById('cbNivel').value,
+                letra: document.getElementById('cbLetra').value,
+                modalidad: mod,
+                especialidad: esp,
+                grupo: grupoCalculado
+            };
+
+            sincronizarTodoEnMemoria();
+            cargarComboMaterias();
+            actualizarComboGrupos();
+            renderizarTablaExpediente(estudiantes);
+            generarPrevisualizacionEnVivo(estudiantes[filaSeleccionadaIndex]);
+            limpiarFormularioEstudiante();
+
+            alert("Registro modificado correctamente.");
+        }
+
+        function generarPrevisualizacionEnVivo(e) {
+            const box = document.getElementById('boxPrevisualizacionExpediente');
+            const qrId = "qr_preview_live";
+
+            box.innerHTML = `
+                <div style="border: 1px solid #94a3b8; padding: 10px; background: #fff; position: relative;">
+                    <div style="position: absolute; right: 8px; top: 8px; text-align: center;">
+                        <div id="${qrId}"></div>
+                        <span style="font-size: 8px;">Verificación</span>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <h4 style="font-size: 11px;">REPÚBLICA DE PANAMÁ</h4>
+                        <h5 style="font-size: 10px;">MINISTERIO DE EDUCACIÓN - ${cfg.colegio}</h5>
+                        <div style="font-size: 9px; font-weight: bold; margin-top: 2px;">EXPEDIENTE DEL ESTUDIANTE</div>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 6px; min-width: auto;">
+                        <tr><td><strong>Código:</strong> ${e.codigo}</td><td><strong>Cédula:</strong> ${e.cedula}</td></tr>
+                        <tr><td colspan="2"><strong>Nombre:</strong> ${e.nombre}</td></tr>
+                        <tr><td><strong>Grado:</strong> ${e.nivel} - ${e.letra}</td><td><strong>Especialidad:</strong> ${e.especialidad}</td></tr>
+                        <tr><td><strong>Materia:</strong> ${e.materia}</td><td><strong>Grupo:</strong> ${e.grupo}</td></tr>
+                        <tr><td colspan="2"><strong>Acudiente:</strong> ${e.acudiente} (${e.parentesco}) - Tel: ${e.telAcudiente}</td></tr>
+                    </table>
+                    <div style="text-align: center; margin-top: 6px;">
+                        <button class="btn-pequeno" style="background-color: var(--verde-guardar);" onclick="imprimirExpedienteSeleccionado()">🖨 Imprimir Expediente</button>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                new QRCode(document.getElementById(qrId), {
+                    text: `EXPEDIENTE|MEDUCA|${e.cedula}|${e.nombre}|${e.grupo}`,
+                    width: 50, height: 50
+                });
+            }, 50);
+        }
+
+        function renderizarTablaExpediente(lista) {
+            const tbody = document.getElementById('cuerpoExpediente');
+            tbody.innerHTML = '';
+            lista.forEach((e, idx) => {
+                const tr = document.createElement('tr');
+                tr.onclick = () => seleccionarFilaEstudiante(idx);
+                tr.innerHTML = `
+                    <td>${e.codigo}</td>
+                    <td style="text-align: left; padding-left: 6px;">${e.nombre}</td>
+                    <td>${e.cedula}</td>
+                    <td>${e.nivel}</td>
+                    <td>${e.grupo}</td>
+                    <td>${e.materia}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filtrarTablaEnVivo() {
+            const q = document.getElementById('txtBuscar').value.trim().toUpperCase();
+            if (!q) {
+                renderizarTablaExpediente(estudiantes);
+                return;
+            }
+            const filtrados = estudiantes.filter(e => 
+                e.cedula.toUpperCase().includes(q) || 
+                e.codigo.toUpperCase().includes(q) || 
+                e.nombre.toUpperCase().includes(q) ||
+                (e.grupo && e.grupo.toUpperCase().includes(q))
+            );
+            renderizarTablaExpediente(filtrados);
+        }
+
+        function seleccionarFilaEstudiante(idx) {
+            filaSeleccionadaIndex = idx;
+            const e = estudiantes[idx];
+            if (!e) return;
+            document.getElementById('txtCodigo').value = e.codigo;
+            document.getElementById('txtNombre').value = e.nombre;
+            document.getElementById('txtCedula').value = e.cedula;
+            document.getElementById('txtMateria').value = e.materia;
+            document.getElementById('txtDireccion').value = e.direccion || '';
+            document.getElementById('txtNacimiento').value = e.nacimiento || '';
+            document.getElementById('txtEdad').value = e.edad || '17';
+            document.getElementById('txtTelefono').value = e.telefono || '';
+            document.getElementById('txtEmail').value = e.email || '';
+            document.getElementById('txtAcudiente').value = e.acudiente || '';
+            document.getElementById('txtTelAcudiente').value = e.telAcudiente || '';
+
+            if (e.nivel) document.getElementById('cbNivel').value = e.nivel;
+            if (e.letra) document.getElementById('cbLetra').value = e.letra;
+            if (e.modalidad) {
+                document.getElementById('cbModalidad').value = e.modalidad;
+                ajustarSubmenuBachilleratoForm();
+            }
+            if (e.especialidad) document.getElementById('cbEspecialidad').value = e.especialidad;
+
+            generarPrevisualizacionEnVivo(e);
+
+            if (e.materia) document.getElementById('filtroAsignatura').value = e.materia.toUpperCase();
+            if (e.grupo) document.getElementById('filtroGrupo').value = e.grupo.toUpperCase();
+        }
+
+        function eliminarEstudiante() {
+            if (filaSeleccionadaIndex === -1) {
+                alert("Seleccione un registro para dar de baja.");
+                return;
+            }
+            if (confirm("¿Está seguro de dar de baja a este estudiante?")) {
+                const estEliminado = estudiantes[filaSeleccionadaIndex];
+                
+                for (let k in notas) {
+                    if (k.startsWith(estEliminado.cedula)) {
+                        delete notas[k];
+                    }
+                }
+
+                estudiantes.splice(filaSeleccionadaIndex, 1);
+                sincronizarTodoEnMemoria();
+                limpiarFormularioEstudiante();
+                renderizarTablaExpediente(estudiantes);
+                cargarComboMaterias();
+                actualizarComboGrupos();
+                renderizarTablaNotas();
+                document.getElementById('boxPrevisualizacionExpediente').innerHTML = '<p style="text-align:center; color:#94a3b8; padding:15px 0;">Registro eliminado.</p>';
+            }
+        }
+
+        function limpiarFormularioEstudiante() {
+            const proxNum = estudiantes.length + 1;
+            const ceros = proxNum < 10 ? '00' : (proxNum < 100 ? '0' : '');
+            document.getElementById('txtCodigo').value = `AL-2026-${ceros}${proxNum}`;
+            document.getElementById('txtNombre').value = '';
+            document.getElementById('txtCedula').value = '';
+            document.getElementById('txtDireccion').value = '';
+            document.getElementById('txtTelefono').value = '';
+            document.getElementById('txtEmail').value = '';
+            document.getElementById('txtAcudiente').value = '';
+            document.getElementById('txtDireccionAcudiente').value = '';
+            document.getElementById('txtTelAcudiente').value = '';
+            filaSeleccionadaIndex = -1;
+        }
+
+        function buscarEstudiante() {
+            const q = document.getElementById('txtBuscar').value.trim().toUpperCase();
+            const idx = estudiantes.findIndex(e => e.cedula.toUpperCase().includes(q) || e.codigo.toUpperCase().includes(q) || e.nombre.toUpperCase().includes(q));
+            if (idx >= 0) {
+                seleccionarFilaEstudiante(idx);
+            } else {
+                alert("No se encontró ningún estudiante con ese criterio.");
+            }
+        }
+
+        function obtenerClaveNota(cedula, materia, grupo, periodo) {
+            return `${cedula.trim().toUpperCase()}_${materia.trim().toUpperCase()}_${grupo.trim().toUpperCase()}_trim${periodo}`.replace(/\s+/g, '_');
+        }
+
+        // VALIDACIÓN OFICIAL DE NOTAS (ESCALA 1.0 A 5.0 MEDUCA)
+        function validarRangoNota(input, idNota, filaIdx) {
+            const rawVal = input.value.trim().replace(',', '.');
+            if (rawVal === '') {
+                calcularFilaNota(idNota, filaIdx);
+                return;
+            }
+
+            const val = parseFloat(rawVal);
+            if (isNaN(val)) {
+                alert("Error: Ingrese un valor numérico válido.");
+                input.value = '';
+                calcularFilaNota(idNota, filaIdx);
+                return;
+            }
+
+            if (val > 5.0) {
+                alert("¡Error de Calificación!\n\nLa nota ingresada (" + rawVal + ") sobrepasa el límite permitido.\nLa escala oficial de calificación es de 1.0 a 5.0.");
+                input.value = '';
+                input.focus();
+                calcularFilaNota(idNota, filaIdx);
+                return;
+            }
+
+            if (val < 1.0 && val > 0) {
+                alert("¡Aviso!\nLa calificación mínima permitida según la reglamentación es 1.0.");
+                input.value = '1.0';
+            }
+
+            calcularFilaNota(idNota, filaIdx);
+        }
+
+        // TABLA DE CALIFICACIONES
+        function renderizarTablaNotas() {
+            const tbody = document.getElementById('cuerpoNotas');
+            tbody.innerHTML = '';
+            const periodo = document.getElementById('filtroPeriodo').value;
+            const materiaAct = (document.getElementById('filtroAsignatura').value || '').trim().toUpperCase();
+            const grupoAct = (document.getElementById('filtroGrupo').value || '').trim().toUpperCase();
+
+            const estudiantesFiltrados = estudiantes.filter(e => {
+                const grp = (e.grupo || '').trim().toUpperCase();
+                return grp === grupoAct;
+            });
+
+            if (estudiantesFiltrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="22" style="padding:15px; color:#64748b;">No hay estudiantes matriculados en <strong>${grupoAct}</strong>. Registre estudiantes en este grupo para visualizarlos en lista.</td></tr>`;
+                return;
+            }
+
+            estudiantesFiltrados.forEach((e, idx) => {
+                const idNota = obtenerClaveNota(e.cedula, materiaAct, grupoAct, periodo);
+                const n = notas[idNota] || { n: Array(8).fill(''), a: Array(5).fill(''), pnd: '0.0', pna: '0.0', exam: '', final: '0.0', aus: '0', tard: '0', fug: '0' };
+
+                const tr = document.createElement('tr');
+                tr.dataset.cedula = e.cedula;
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td style="text-align: left; padding-left: 6px;">${e.nombre}</td>
+                    ${[0,1,2,3,4,5,6,7].map(i => `<td><input type="text" class="input-nota" value="${n.n[i]}" onblur="validarRangoNota(this, '${idNota}', ${idx})" oninput="calcularFilaNota('${idNota}', ${idx})"></td>`).join('')}
+                    <td id="pnd_${idx}">${n.pnd}</td>
+                    ${[0,1,2,3,4].map(i => `<td><input type="text" class="input-nota" value="${n.a[i]}" onblur="validarRangoNota(this, '${idNota}', ${idx})" oninput="calcularFilaNota('${idNota}', ${idx})"></td>`).join('')}
+                    <td id="pna_${idx}">${n.pna}</td>
+                    <td><input type="text" class="input-nota" id="exam_${idx}" value="${n.exam}" onblur="validarRangoNota(this, '${idNota}', ${idx})" oninput="calcularFilaNota('${idNota}', ${idx})"></td>
+                    <td><input type="text" class="input-nota input-final" id="final_${idx}" value="${n.final}" onblur="validarRangoNota(this, '${idNota}', ${idx})" oninput="fijarNotaManual('${idNota}', this.value)"></td>
+                    <td><input type="text" class="input-nota" id="aus_${idx}" value="${n.aus}" oninput="guardarCalificaciones(false)"></td>
+                    <td><input type="text" class="input-nota" id="tard_${idx}" value="${n.tard}" oninput="guardarCalificaciones(false)"></td>
+                    <td><input type="text" class="input-nota" id="fug_${idx}" value="${n.fug}" oninput="guardarCalificaciones(false)"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function fijarNotaManual(idNota, valor) {
+            guardarCalificaciones(false);
+        }
+
+        function calcularFilaNota(idNota, filaIdx) {
+            const tr = document.getElementById('cuerpoNotas').children[filaIdx];
+            if (!tr) return;
+            const inputs = tr.querySelectorAll('input');
+
+            let sND = 0, cND = 0;
+            for (let i = 0; i < 8; i++) {
+                let v = parseFloat(inputs[i].value.replace(',', '.'));
+                if (!isNaN(v) && v > 0) {
+                    if (v > 5.0) v = 5.0;
+                    sND += v; 
+                    cND++; 
+                }
+            }
+            const pnd = cND > 0 ? (sND / cND).toFixed(1) : '0.0';
+            const elPnd = document.getElementById(`pnd_${filaIdx}`);
+            if (elPnd) elPnd.innerText = pnd;
+
+            let sNA = 0, cNA = 0;
+            for (let i = 8; i < 13; i++) {
+                let v = parseFloat(inputs[i].value.replace(',', '.'));
+                if (!isNaN(v) && v > 0) { 
+                    if (v > 5.0) v = 5.0;
+                    sNA += v; 
+                    cNA++; 
+                }
+            }
+            const pna = cNA > 0 ? (sNA / cNA).toFixed(1) : '0.0';
+            const elPna = document.getElementById(`pna_${filaIdx}`);
+            if (elPna) elPna.innerText = pna;
+
+            let exam = parseFloat(document.getElementById(`exam_${filaIdx}`).value.replace(',', '.')) || 0;
+            if (exam > 5.0) exam = 5.0;
+            const inputFinal = document.getElementById(`final_${filaIdx}`);
+
+            if (parseFloat(pnd) > 0 || parseFloat(pna) > 0 || exam > 0) {
+                const notaFinalCalc = (parseFloat(pnd) * 0.35) + (parseFloat(pna) * 0.35) + (exam * 0.30);
+                inputFinal.value = Math.min(5.0, notaFinalCalc).toFixed(1);
+            }
+            guardarCalificaciones(false);
+        }
+
+        function guardarCalificaciones(notificar = true) {
+            const tbody = document.getElementById('cuerpoNotas');
+            const periodo = document.getElementById('filtroPeriodo').value;
+            const materiaAct = (document.getElementById('filtroAsignatura').value || '').trim().toUpperCase();
+            const grupoAct = (document.getElementById('filtroGrupo').value || '').trim().toUpperCase();
+
+            Array.from(tbody.children).forEach((tr, idx) => {
+                const cedula = tr.dataset.cedula;
+                if (!cedula) return;
+                const inputs = tr.querySelectorAll('input');
+                const idNota = obtenerClaveNota(cedula, materiaAct, grupoAct, periodo);
+
+                const elPnd = document.getElementById(`pnd_${idx}`);
+                const elPna = document.getElementById(`pna_${idx}`);
+                const elExam = document.getElementById(`exam_${idx}`);
+                const elFinal = document.getElementById(`final_${idx}`);
+                const elAus = document.getElementById(`aus_${idx}`);
+                const elTard = document.getElementById(`tard_${idx}`);
+                const elFug = document.getElementById(`fug_${idx}`);
+
+                notas[idNota] = {
+                    n: [inputs[0].value, inputs[1].value, inputs[2].value, inputs[3].value, inputs[4].value, inputs[5].value, inputs[6].value, inputs[7].value],
+                    pnd: elPnd ? elPnd.innerText : '0.0',
+                    a: [inputs[8].value, inputs[9].value, inputs[10].value, inputs[11].value, inputs[12].value],
+                    pna: elPna ? elPna.innerText : '0.0',
+                    exam: elExam ? elExam.value : '',
+                    final: elFinal ? elFinal.value : '0.0',
+                    aus: elAus ? elAus.value : '0',
+                    tard: elTard ? elTard.value : '0',
+                    fug: elFug ? elFug.value : '0'
+                };
+            });
+
+            localStorage.setItem('mora_calificaciones', JSON.stringify(notas));
+            if (notificar) alert("Calificaciones del " + periodo + "° Trimestre guardadas con éxito.");
+        }
+
+        // GESTIÓN DE GRUPOS
+        function renderizarConsolidadoGrupos() {
+            const tbody = document.getElementById('cuerpoGrupos');
+            tbody.innerHTML = '';
+
+            const filtroGrado = document.getElementById('filtroGrupoGrado').value;
+            const filtroSeccion = document.getElementById('filtroGrupoSeccion').value;
+            const filtroBachiller = document.getElementById('filtroGrupoBachiller').value;
+
+            const mapa = {};
+            estudiantes.forEach(e => {
+                const grp = (e.grupo || "Sin Grupo Asignado").toUpperCase();
+                const mod = e.modalidad || "Media";
+                const esp = e.especialidad || "Tecnología";
+                const niv = e.nivel || "12°";
+
+                if (filtroGrado !== 'TODOS' && niv !== filtroGrado) return;
+                if (filtroSeccion !== 'TODOS' && mod !== filtroSeccion) return;
+                if (filtroSeccion === 'Media' && filtroBachiller !== 'TODOS' && esp !== filtroBachiller) return;
+
+                if (!mapa[grp]) {
+                    mapa[grp] = {
+                        nombre: grp,
+                        modalidad: mod,
+                        especialidad: esp,
+                        total: 0
+                    };
+                }
+                mapa[grp].total++;
+            });
+
+            let granTotal = 0;
+            for (let g in mapa) {
+                granTotal += mapa[g].total;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="radio" name="selGrupo" value="${g}" onchange="grupoSeleccionadoParaEliminar = '${g}'"></td>
+                    <td style="font-weight: bold; text-align: left; padding-left: 8px;">${mapa[g].nombre}</td>
+                    <td>${mapa[g].modalidad}</td>
+                    <td>${mapa[g].especialidad}</td>
+                    <td style="font-weight: bold; color: var(--azul-boton);">${mapa[g].total}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            tbody.innerHTML += `
+                <tr style="font-weight: bold; background: #f1f5f9; font-size: 11px;">
+                    <td colspan="4" style="text-align: right; padding-right: 15px;">TOTAL GENERAL MATRICULADOS:</td>
+                    <td style="color: var(--verde-guardar); font-size: 13px;">${granTotal}</td>
+                </tr>
+            `;
+        }
+
+        function eliminarGrupoSeleccionado() {
+            if (!grupoSeleccionadoParaEliminar) {
+                alert("Por favor, seleccione un grupo de la tabla marcando la casilla redonda (Sel).");
+                return;
+            }
+
+            const cantidadAlumnos = estudiantes.filter(e => (e.grupo || '').toUpperCase() === grupoSeleccionadoParaEliminar).length;
+            const confirmar = confirm(`¿Está seguro de eliminar el grupo "${grupoSeleccionadoParaEliminar}"?
+
+Esta acción dará de baja automáticamente a los ${cantidadAlumnos} estudiante(s) matriculados en este grupo y sus calificaciones asociadas.`);
+
+            if (confirmar) {
+                estudiantes = estudiantes.filter(e => (e.grupo || '').toUpperCase() !== grupoSeleccionadoParaEliminar);
+
+                for (let k in notas) {
+                    if (k.includes(grupoSeleccionadoParaEliminar.replace(/\s+/g, '_'))) {
+                        delete notas[k];
+                    }
+                }
+
+                grupoSeleccionadoParaEliminar = null;
+                sincronizarTodoEnMemoria();
+                limpiarFormularioEstudiante();
+                actualizarComboGrupos();
+                renderizarConsolidadoGrupos();
+                renderizarTablaExpediente(estudiantes);
+                cargarComboMaterias();
+                renderizarTablaNotas();
+                alert("El grupo y todos sus estudiantes han sido eliminados correctamente del sistema.");
+            }
+        }
+
+        // RESPALDO EN FORMATO JSON
+        function descargarBackup() {
+            sincronizarTodoEnMemoria();
+            const paquete = {
+                version: "10.0",
+                fecha: new Date().toISOString(),
+                creador: "Mgtr. Elkis H. Mora Ch.",
+                configuracion: cfg,
+                materias: listaMaterias,
+                estudiantes: estudiantes,
+                calificaciones: notas
+            };
+
+            const jsonStr = JSON.stringify(paquete, null, 2);
+            const dataBlob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Respaldo_SuiteEscolar_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function restaurarBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.estudiantes && data.calificaciones) {
+                        estudiantes = data.estudiantes;
+                        notas = data.calificaciones;
+                        if (data.configuracion) cfg = data.configuracion;
+                        if (data.materias) listaMaterias = data.materias;
+
+                        sincronizarTodoEnMemoria();
+                        aplicarConfiguracionEnPantalla();
+                        cargarComboMaterias();
+                        actualizarComboGrupos();
+                        renderizarTablaExpediente(estudiantes);
+                        renderizarTablaNotas();
+                        limpiarFormularioEstudiante();
+                        alert("¡Respaldo cargado con éxito en este dispositivo!");
+                    } else {
+                        alert("El archivo no corresponde a un respaldo válido de la Suite Escolar.");
+                    }
+                } catch (err) {
+                    alert("Error al restaurar: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // MOTOR DE IMPRESIÓN LIMPIA
+        function ejecutarImpresionLimpia(htmlContenido) {
+            const ventana = window.open('', '_blank');
+            ventana.document.write(`
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Reporte Oficial MEDUCA - Suite Escolar</title>
+                    <style>
+                        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+                        html, body {
+                            width: 100%;
+                            height: auto;
+                            background: #fff;
+                            color: #000;
+                            overflow: hidden;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        @page {
+                            size: letter portrait;
+                            margin: 6mm 8mm;
+                        }
+                        .hoja-impresion {
+                            width: 100%;
+                            padding: 2mm 4mm;
+                            margin: 0 auto;
+                        }
+                        .encabezado-oficial { text-align: center; margin-bottom: 6px; position: relative; }
+                        .encabezado-oficial h3 { font-size: 11.5pt; font-weight: bold; }
+                        .encabezado-oficial h4 { font-size: 10pt; margin-top: 1px; }
+                        .encabezado-oficial h5 { font-size: 9pt; margin-top: 1px; }
+                        .qr-posicion { position: absolute; right: 0; top: 0; width: 55px; height: 55px; text-align: center; }
+                        .qr-posicion span { font-size: 7.5pt; display: block; margin-top: 1px; }
+
+                        .tabla-oficial { 
+                            width: 100% !important; 
+                            border-collapse: collapse !important; 
+                            margin-top: 5px; 
+                            border: 1.5px solid #000 !important;
+                        }
+                        .tabla-oficial th, .tabla-oficial td { 
+                            border: 1px solid #000 !important; 
+                            padding: 2.5px 3px !important; 
+                            font-size: 8.5pt !important;
+                            color: #000 !important;
+                        }
+                        .tabla-oficial th { 
+                            background-color: #f1f5f9 !important; 
+                            font-weight: bold !important; 
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+
+                        .tabla-libreta-45 {
+                            width: 100% !important;
+                            border-collapse: collapse !important;
+                            border: 1.5px solid #000 !important;
+                            table-layout: fixed !important;
+                        }
+                        .tabla-libreta-45 th {
+                            border: 1px solid #000 !important;
+                            font-size: 7pt !important;
+                            padding: 1.5px 0 !important;
+                            background-color: #f1f5f9 !important;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+                        .tabla-libreta-45 td {
+                            border: 1px solid #000 !important;
+                            font-size: 6.8pt !important;
+                            padding: 0 !important;
+                            height: 4.1mm !important;
+                            line-height: 4.1mm !important;
+                            text-align: center !important;
+                        }
+
+                        .firmas-box {
+                            display: flex; justify-content: space-around; margin-top: 25px; text-align: center;
+                        }
+                        .linea-firma { width: 190px; border-top: 1px solid #000; padding-top: 4px; font-weight: bold; font-size: 8.5pt; }
+                    </style>
+                </head>
+                <body>
+                    ${htmlContenido}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(function() { window.close(); }, 500);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            ventana.document.close();
+        }
+
+        // IMPRESIÓN OFICIAL DEL CONSOLIDADO DE MATRÍCULA
+        function imprimirConsolidadoGruposPantalla() {
+            const filtroGrado = document.getElementById('filtroGrupoGrado').value;
+            const filtroSeccion = document.getElementById('filtroGrupoSeccion').value;
+            const filtroBachiller = document.getElementById('filtroGrupoBachiller').value;
+
+            const mapa = {};
+            estudiantes.forEach(e => {
+                const grp = (e.grupo || "Sin Grupo Asignado").toUpperCase();
+                const mod = e.modalidad || "Media";
+                const esp = e.especialidad || "Tecnología";
+                const niv = e.nivel || "12°";
+
+                if (filtroGrado !== 'TODOS' && niv !== filtroGrado) return;
+                if (filtroSeccion !== 'TODOS' && mod !== filtroSeccion) return;
+                if (filtroSeccion === 'Media' && filtroBachiller !== 'TODOS' && esp !== filtroBachiller) return;
+
+                if (!mapa[grp]) {
+                    mapa[grp] = {
+                        nombre: grp,
+                        modalidad: mod,
+                        especialidad: esp,
+                        total: 0
+                    };
+                }
+                mapa[grp].total++;
+            });
+
+            const keys = Object.keys(mapa);
+            if (keys.length === 0) {
+                alert("No hay grupos que coincidan con los filtros seleccionados para imprimir.");
+                return;
+            }
+
+            let filasHTML = '';
+            let totalGeneral = 0;
+            keys.forEach((g, idx) => {
+                totalGeneral += mapa[g].total;
+                filasHTML += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td style="text-align: left; padding-left: 8px; font-weight: bold;">${mapa[g].nombre}</td>
+                        <td>${mapa[g].modalidad}</td>
+                        <td>${mapa[g].especialidad}</td>
+                        <td style="font-weight: bold;">${mapa[g].total}</td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="hoja-impresion">
+                    <div class="encabezado-oficial">
+                        <h3>REPÚBLICA DE PANAMÁ - MINISTERIO DE EDUCACIÓN</h3>
+                        <h4>${cfg.colegio}</h4>
+                        <h4>CONSOLIDADO OFICIAL DE MATRÍCULA POR GRUPOS</h4>
+                        <div style="font-size: 8.5pt; margin-top: 3px; color: #334155;">
+                            Año Lectivo: <strong>${cfg.periodo}</strong> | Regional: <strong>${cfg.regional}</strong> | Filtro: <strong>${filtroGrado} / ${filtroSeccion}</strong>
+                        </div>
+                    </div>
+
+                    <table class="tabla-oficial" style="text-align: center; margin-top: 8px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;">N°</th>
+                                <th>Grupo / Grado</th>
+                                <th>Sección / Modalidad</th>
+                                <th>Especialidad / Bachiller</th>
+                                <th>Total Matriculados</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filasHTML}
+                            <tr style="font-weight: bold; background-color: #f1f5f9; font-size: 9pt;">
+                                <td colspan="4" style="text-align: right; padding-right: 15px;">TOTAL GENERAL DE ESTUDIANTES:</td>
+                                <td style="color: #000; font-size: 10pt;">${totalGeneral}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="firmas-box" style="margin-top: 35px;">
+                        <div class="linea-firma">${cfg.docente}<br>Docente Responsable</div>
+                        <div class="linea-firma">Dirección del Plantel<br>Sello y Validación Oficial</div>
+                    </div>
+
+                    <div style="text-align: center; font-size: 7.5pt; color: #64748b; margin-top: 25px;">
+                        © Mgtr. Elkis H. Mora Ch. - Sistema de Gestión Escolar MEDUCA
+                    </div>
+                </div>
+            `;
+
+            ejecutarImpresionLimpia(html);
+        }
+
+        // IMPRESIÓN DIRECTA DE BÚSQUEDA
+        function imprimirBusquedaPantalla() {
+            const q = document.getElementById('txtBuscar').value.trim().toUpperCase();
+            const listaAImprimir = q ? estudiantes.filter(e => 
+                e.cedula.toUpperCase().includes(q) || 
+                e.codigo.toUpperCase().includes(q) || 
+                e.nombre.toUpperCase().includes(q) ||
+                (e.grupo && e.grupo.toUpperCase().includes(q))
+            ) : estudiantes;
+
+            if (listaAImprimir.length === 0) {
+                alert("No hay registros que coincidan con la búsqueda actual para imprimir.");
+                return;
+            }
+
+            let filasHTML = '';
+            listaAImprimir.forEach((e, idx) => {
+                filasHTML += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${e.codigo}</td>
+                        <td style="text-align: left; padding-left: 6px;">${e.nombre}</td>
+                        <td>${e.cedula}</td>
+                        <td>${e.nivel} - ${e.letra || ''}</td>
+                        <td>${e.grupo}</td>
+                        <td>${e.materia}</td>
+                        <td>${e.telefono || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="hoja-impresion">
+                    <div class="encabezado-oficial">
+                        <h3>REPÚBLICA DE PANAMÁ - MINISTERIO DE EDUCACIÓN</h3>
+                        <h4>${cfg.colegio}</h4>
+                        <h4>REPORTE DE BÚSQUEDA Y MATRÍCULA OFICIAL</h4>
+                        <div style="font-size: 8.5pt; margin-top: 3px; color: #334155;">
+                            Criterio de búsqueda: <strong>"${q || 'TODOS LOS ALUMNOS'}"</strong> | Total encontrados: <strong>${listaAImprimir.length}</strong>
+                        </div>
+                    </div>
+
+                    <table class="tabla-oficial" style="text-align: center; margin-top: 8px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 25px;">N°</th>
+                                <th>Código</th>
+                                <th>Nombre Completo</th>
+                                <th>Cédula</th>
+                                <th>Grado</th>
+                                <th>Grupo</th>
+                                <th>Materia</th>
+                                <th>Teléfono</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filasHTML}
+                        </tbody>
+                    </table>
+
+                    <div class="firmas-box" style="margin-top: 35px;">
+                        <div class="linea-firma">${cfg.docente}<br>Docente Responsable</div>
+                        <div class="linea-firma">Dirección del Plantel<br>Sello Oficial</div>
+                    </div>
+
+                    <div style="text-align: center; font-size: 7.5pt; color: #64748b; margin-top: 25px;">
+                        © Mgtr. Elkis H. Mora Ch. - Sistema de Gestión Escolar MEDUCA
+                    </div>
+                </div>
+            `;
+
+            ejecutarImpresionLimpia(html);
+        }
+
+        // EXPEDIENTE INDIVIDUAL (IMPRESIÓN 100% CERRADA)
+        function imprimirExpedienteSeleccionado() {
+            if (filaSeleccionadaIndex === -1) {
+                alert("Seleccione un estudiante en la tabla.");
+                return;
+            }
+            const e = estudiantes[filaSeleccionadaIndex];
+            const materiaAct = (e.materia || "TECNOLOGÍA DE LA INFORMACIÓN").toUpperCase();
+            const grupoAct = (e.grupo || "12° A TECNOLOGÍA").toUpperCase();
+
+            const t1 = notas[obtenerClaveNota(e.cedula, materiaAct, grupoAct, 1)] || { pnd: '0.0', pna: '0.0', exam: '0.0', final: '0.0', aus: '0', tard: '0', fug: '0' };
+            const t2 = notas[obtenerClaveNota(e.cedula, materiaAct, grupoAct, 2)] || { pnd: '0.0', pna: '0.0', exam: '0.0', final: '0.0', aus: '0', tard: '0', fug: '0' };
+            const t3 = notas[obtenerClaveNota(e.cedula, materiaAct, grupoAct, 3)] || { pnd: '0.0', pna: '0.0', exam: '0.0', final: '0.0', aus: '0', tard: '0', fug: '0' };
+
+            const totalAus = parseInt(t1.aus || 0) + parseInt(t2.aus || 0) + parseInt(t3.aus || 0);
+            const totalTard = parseInt(t1.tard || 0) + parseInt(t2.tard || 0) + parseInt(t3.tard || 0);
+            const totalFug = parseInt(t1.fug || 0) + parseInt(t2.fug || 0) + parseInt(t3.fug || 0);
+
+            const proms = [parseFloat(t1.final), parseFloat(t2.final), parseFloat(t3.final)].filter(x => x > 0);
+            const promedioAnual = proms.length > 0 ? (proms.reduce((a,b)=>a+b,0) / proms.length).toFixed(1) : '0.0';
+
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=65x65&data=${encodeURIComponent(`MEDUCA-${cfg.colegio}|CED:${e.cedula}|ALUMNO:${e.nombre}|PROM:${promedioAnual}`)}`;
+
+            const html = `
+                <div class="hoja-impresion">
+                    <div class="encabezado-oficial">
+                        <div class="qr-posicion">
+                            <img src="${qrUrl}" width="55" height="55" alt="QR">
+                            <span>Verificación</span>
+                        </div>
+                        <h3>REPÚBLICA DE PANAMÁ</h3>
+                        <h4>MINISTERIO DE EDUCACIÓN</h4>
+                        <h4>${cfg.colegio}</h4>
+                        <h5>ASIGNATURA: ${materiaAct}</h5>
+                    </div>
+
+                    <h4 style="text-align: center; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; padding: 3px 0; margin-bottom: 8px;">
+                        EXPEDIENTE ACADÉMICO Y CONTROL DE ASISTENCIA
+                    </h4>
+
+                    <div style="font-weight: bold; font-size: 9pt; margin-bottom: 2px;">DATOS GENERALES DEL ALUMNO</div>
+                    <table class="tabla-oficial" style="margin-top: 0; margin-bottom: 6px;">
+                        <tr>
+                            <td style="width: 30%;"><strong>Código:</strong> ${e.codigo}</td>
+                            <td style="width: 45%;"><strong>Nombre:</strong> ${e.nombre}</td>
+                            <td style="width: 25%;"><strong>Cédula:</strong> ${e.cedula}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Grado / Sección:</strong> ${e.nivel} - ${e.letra || ''}</td>
+                            <td><strong>Bachillerato:</strong> ${e.especialidad}</td>
+                            <td><strong>Materia:</strong> ${e.materia}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fecha Nac:</strong> ${e.nacimiento} (${e.edad} años)</td>
+                            <td><strong>Sexo:</strong> ${e.sexo}</td>
+                            <td><strong>Teléfono:</strong> ${e.telefono || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong>Dirección Residencial:</strong> ${e.direccion || 'N/A'}</td>
+                        </tr>
+                    </table>
+
+                    <div style="font-weight: bold; font-size: 9pt; margin-bottom: 2px;">DATOS DEL ACUDIENTE / CONTACTO FAMILIAR</div>
+                    <table class="tabla-oficial" style="margin-top: 0; margin-bottom: 6px;">
+                        <tr>
+                            <td style="width: 45%;"><strong>Nombre:</strong> ${e.acudiente || 'N/A'}</td>
+                            <td style="width: 25%;"><strong>Parentesco:</strong> ${e.parentesco || 'N/A'}</td>
+                            <td style="width: 30%;"><strong>Teléfono:</strong> ${e.telAcudiente || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong>Lugar de Trabajo:</strong> ${e.trabajoAcudiente || 'N/A'}</td>
+                        </tr>
+                    </table>
+
+                    <div style="font-weight: bold; font-size: 9pt; margin-bottom: 2px;">REGISTRO ACUMULADO DE ASISTENCIA</div>
+                    <table class="tabla-oficial" style="margin-top: 0; margin-bottom: 6px;">
+                        <tr>
+                            <td style="width: 33.3%;"><strong>Ausencias (A):</strong> ${totalAus}</td>
+                            <td style="width: 33.3%;"><strong>Tardanzas (T):</strong> ${totalTard}</td>
+                            <td style="width: 33.3%;"><strong>Fugas (F):</strong> ${totalFug}</td>
+                        </tr>
+                    </table>
+
+                    <div style="font-weight: bold; font-size: 9pt; margin-bottom: 2px;">EVALUACIÓN ACADÉMICA POR TRIMESTRE</div>
+                    <table class="tabla-oficial" style="margin-top: 0; margin-bottom: 8px; text-align: center;">
+                        <thead>
+                            <tr>
+                                <th>Periodo</th><th>Prom. Diario</th><th>Prom. Aprec.</th><th>Examen</th><th>Ausencias</th><th>Nota Trimestral</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>1° Trimestre</td><td>${t1.pnd}</td><td>${t1.pna}</td><td>${t1.exam || '0.0'}</td><td>${t1.aus || '0'}</td><td><strong>${t1.final}</strong></td></tr>
+                            <tr><td>2° Trimestre</td><td>${t2.pnd}</td><td>${t2.pna}</td><td>${t2.exam || '0.0'}</td><td>${t2.aus || '0'}</td><td><strong>${t2.final}</strong></td></tr>
+                            <tr><td>3° Trimestre</td><td>${t3.pnd}</td><td>${t3.pna}</td><td>${t3.exam || '0.0'}</td><td>${t3.aus || '0'}</td><td><strong>${t3.final}</strong></td></tr>
+                        </tbody>
+                    </table>
+
+                    <div style="text-align: right; font-size: 9.5pt; font-weight: bold; margin-bottom: 18px;">
+                        PROMEDIO GENERAL ANUAL: ${promedioAnual}
+                    </div>
+
+                    <div class="firmas-box">
+                        <div class="linea-firma">${cfg.docente}<br>Docente Responsable</div>
+                        <div class="linea-firma">Dirección del Plantel<br>Sello Oficial</div>
+                    </div>
+
+                    <div style="text-align: center; font-size: 7.5pt; color: #64748b; margin-top: 25px;">
+                        © Mgtr. Elkis H. Mora Ch. - Sistema de Gestión Escolar MEDUCA
+                    </div>
+                </div>
+            `;
+
+            ejecutarImpresionLimpia(html);
+        }
+
+        // LIBRETA OFICIAL: EXACTAMENTE 45 FILAS EN 1 SOLA HOJA VERTICAL (1 SHEET)
+        function imprimirRegistroOficialEvaluacion() {
+            const periodo = document.getElementById('filtroPeriodo').value;
+            const grupo = (document.getElementById('filtroGrupo').value || '').trim().toUpperCase();
+            const materia = (document.getElementById('filtroAsignatura').value || '').trim().toUpperCase();
+
+            const estudiantesGrupo = estudiantes.filter(e => (e.grupo || '').trim().toUpperCase() === grupo);
+
+            let filasHTML = '';
+            for (let i = 0; i < 45; i++) {
+                if (i < estudiantesGrupo.length) {
+                    const e = estudiantesGrupo[i];
+                    const idNota = obtenerClaveNota(e.cedula, materia, grupo, periodo);
+                    const n = notas[idNota] || { n: Array(8).fill(''), a: Array(5).fill(''), pnd: '', pna: '', exam: '', final: '', aus: '', tard: '', fug: '' };
+                    filasHTML += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td style="text-align: left; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${e.nombre}</td>
+                            ${n.n.map(v => `<td>${v || ''}</td>`).join('')}
+                            <td style="font-weight: bold; background: #f8fafc;">${n.pnd || ''}</td>
+                            ${n.a.map(v => `<td>${v || ''}</td>`).join('')}
+                            <td style="font-weight: bold; background: #f8fafc;">${n.pna || ''}</td>
+                            <td>${n.exam || ''}</td>
+                            <td style="font-weight: bold; background: #e2e8f0;">${n.final || ''}</td>
+                            <td>${n.aus || ''}</td><td>${n.tard || ''}</td><td>${n.fug || ''}</td>
+                        </tr>
+                    `;
+                } else {
+                    filasHTML += `<tr><td>${i + 1}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+                }
+            }
+
+            const html = `
+                <div class="hoja-impresion">
+                    <div class="encabezado-oficial" style="margin-bottom: 3px;">
+                        <h3 style="font-size: 11pt;">REPÚBLICA DE PANAMÁ - MINISTERIO DE EDUCACIÓN</h3>
+                        <h4 style="font-size: 9.5pt;">${cfg.colegio}</h4>
+                        <h4 style="font-size: 9pt;">REGISTRO OFICIAL DE EVALUACIÓN Y ASISTENCIA (MEDUCA)</h4>
+                    </div>
+
+                    <div style="font-size: 7.5pt; font-weight: bold; border: 1.5px solid #000; padding: 2px 4px; margin-bottom: 3px; display: flex; justify-content: space-between;">
+                        <span>GRUPO: ${grupo}</span>
+                        <span>PERIODO: ${periodo}° TRIMESTRE</span>
+                        <span>DOCENTE: ${cfg.docente}</span>
+                        <span>ASIGNATURA: ${materia}</span>
+                    </div>
+
+                    <table class="tabla-libreta-45">
+                        <colgroup>
+                            <col style="width: 17px;">
+                            <col style="width: 135px;">
+                            <col span="8" style="width: 17px;">
+                            <col style="width: 22px;">
+                            <col span="5" style="width: 17px;">
+                            <col style="width: 22px;">
+                            <col style="width: 22px;">
+                            <col style="width: 24px;">
+                            <col style="width: 15px;">
+                            <col style="width: 15px;">
+                            <col style="width: 15px;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>N°</th>
+                                <th>Nombre del Estudiante</th>
+                                <th>N1</th><th>N2</th><th>N3</th><th>N4</th><th>N5</th><th>N6</th><th>N7</th><th>N8</th>
+                                <th>P.ND</th>
+                                <th>A1</th><th>A2</th><th>A3</th><th>A4</th><th>A5</th>
+                                <th>P.NA</th>
+                                <th>Exam</th>
+                                <th>FINAL</th>
+                                <th>A</th><th>T</th><th>F</th>
+                            </tr>
+                        </thead>
+                        <tbody>${filasHTML}</tbody>
+                    </table>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 3px; font-size: 7pt;">
+                        <span>Reglamento MEDUCA - Libreta de Control</span>
+                        <span>© Mgtr. Elkis H. Mora Ch.</span>
+                    </div>
+                </div>
+            `;
+
+            ejecutarImpresionLimpia(html);
+        }
+
+        // INFORME ANUAL CONSOLIDADO
+        function imprimirInformeAnual() {
+            const grupo = (document.getElementById('filtroGrupo').value || '').trim().toUpperCase();
+            const materia = (document.getElementById('filtroAsignatura').value || '').trim().toUpperCase();
+
+            const estudiantesGrupo = estudiantes.filter(e => (e.grupo || '').trim().toUpperCase() === grupo);
+
+            let filasHTML = '';
+            estudiantesGrupo.forEach((e, idx) => {
+                const t1 = notas[obtenerClaveNota(e.cedula, materia, grupo, 1)] || { final: '0.0', aus: '0', tard: '0' };
+                const t2 = notas[obtenerClaveNota(e.cedula, materia, grupo, 2)] || { final: '0.0', aus: '0', tard: '0' };
+                const t3 = notas[obtenerClaveNota(e.cedula, materia, grupo, 3)] || { final: '0.0', aus: '0', tard: '0' };
+
+                const proms = [parseFloat(t1.final), parseFloat(t2.final), parseFloat(t3.final)].filter(x => x > 0);
+                const finalAnual = proms.length > 0 ? (proms.reduce((a,b)=>a+b,0) / proms.length).toFixed(1) : '0.0';
+                const totAus = parseInt(t1.aus || 0) + parseInt(t2.aus || 0) + parseInt(t3.aus || 0);
+                const totTard = parseInt(t1.tard || 0) + parseInt(t2.tard || 0) + parseInt(t3.tard || 0);
+
+                filasHTML += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td style="text-align: left; padding-left: 6px;">${e.nombre}</td>
+                        <td>${t1.final}</td><td>${t2.final}</td><td>${t3.final}</td>
+                        <td style="font-weight: bold; background: #f1f5f9;">${finalAnual}</td>
+                        <td>${t1.aus || '0'}</td><td>${t1.tard || '0'}</td>
+                        <td>${t2.aus || '0'}</td><td>${t2.tard || '0'}</td>
+                        <td>${t3.aus || '0'}</td><td>${t3.tard || '0'}</td>
+                        <td style="font-weight: bold;">${totAus}</td>
+                        <td style="font-weight: bold;">${totTard}</td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="hoja-impresion">
+                    <div class="encabezado-oficial">
+                        <h3>MINISTERIO DE EDUCACIÓN</h3>
+                        <h4>INFORME DE CALIFICACIONES, AUSENCIAS Y TARDANZAS</h4>
+                    </div>
+
+                    <table class="tabla-oficial" style="margin-bottom: 6px;">
+                        <tr>
+                            <td style="width: 35%;"><strong>PLANTEL:</strong> ${cfg.colegio}</td>
+                            <td style="width: 35%;"><strong>ASIGNATURA:</strong> ${materia}</td>
+                            <td style="width: 30%;"><strong>NIVEL:</strong> ${estudiantesGrupo[0]?.nivel || '12°'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AÑO LECTIVO:</strong> ${cfg.periodo}</td>
+                            <td><strong>GRUPO:</strong> ${grupo}</td>
+                            <td><strong>PROF (A) CONSEJERO:</strong> ${cfg.docente}</td>
+                        </tr>
+                    </table>
+
+                    <table class="tabla-oficial" style="text-align: center;">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 25px;">N°</th>
+                                <th rowspan="2" style="width: 220px;">NOMBRE DEL ESTUDIANTE</th>
+                                <th colspan="3">TRIMESTRES</th>
+                                <th rowspan="2">NOTA FINAL</th>
+                                <th colspan="2">1°</th>
+                                <th colspan="2">2°</th>
+                                <th colspan="2">3°</th>
+                                <th colspan="2">TOTAL ANUAL</th>
+                            </tr>
+                            <tr>
+                                <th>I</th><th>II</th><th>III</th>
+                                <th>A</th><th>T</th>
+                                <th>A</th><th>T</th>
+                                <th>A</th><th>T</th>
+                                <th>A</th><th>T</th>
+                            </tr>
+                        </thead>
+                        <tbody>${filasHTML}</tbody>
+                    </table>
+
+                    <div class="firmas-box" style="margin-top: 35px;">
+                        <div class="linea-firma">${cfg.docente}<br>Docente Responsable</div>
+                        <div class="linea-firma">Dirección del Plantel<br>Sello y Validación Oficial</div>
+                    </div>
+
+                    <div style="text-align: center; font-size: 7.5pt; color: #64748b; margin-top: 25px;">
+                        © Mgtr. Elkis H. Mora Ch. - Sistema de Gestión Escolar MEDUCA
+                    </div>
+                </div>
+            `;
+
+            ejecutarImpresionLimpia(html);
+        }
+
+        // CUADRO DE %: FILTRADO ESTRICTO POR NIVEL ACTIVO (12°, 11°, ETC.)
+        function imprimirCuadroPorcentajes() {
+            const periodo = document.getElementById('filtroPeriodo').value;
+            const grupoActivo = (document.getElementById('filtroGrupo').value || '').trim().toUpperCase();
+
+            // 1. Detectar el nivel activo a partir del grupo en pantalla o de la lista de alumnos
+            let nivelActivo = "";
+            const coincidenciaNivel = grupoActivo.match(/^(\d+°)/);
+            if (coincidenciaNivel) {
+                nivelActivo = coincidenciaNivel[1];
+            } else {
+                const estRef = estudiantes.find(e => (e.grupo || '').trim().toUpperCase() === grupoActivo);
+                nivelActivo = estRef ? (estRef.nivel || "12°") : "12°";
+            }
+
+            // Determinar la clasificación académica según el grado
+            const numGrado = parseInt(nivelActivo.replace('°', '')) || 12;
+            let clasificacionNivel = "";
+            if (numGrado >= 10 && numGrado <= 12) {
+                clasificacionNivel = "MEDIA";
+            } else if (numGrado >= 7 && numGrado <= 9) {
+                clasificacionNivel = "PREMEDIA";
+            } else {
+                clasificacionNivel = "PRIMARIA";
+            }
+
+            // 2. Agrupar únicamente los estudiantes que pertenecen a ese mismo nivel
+            const mapaGrupos = {};
+
+            estudiantes.forEach(e => {
+                const nivEst = (e.nivel || "").trim();
+                // Validar que pertenezca exclusivamente al mismo nivel (ej: solo 12°)
+                const cumpleNivel = nivEst === nivelActivo || (e.grupo && e.grupo.toUpperCase().startsWith(nivelActivo));
+                if (!cumpleNivel) return;
+
+                const grp = (e.grupo || "SIN GRUPO").toUpperCase();
+                const mat = (e.materia || "SIN ASIGNATURA").toUpperCase();
+                
+                // Formatear modalidad/bachiller según la regla institucional
+                let bachillerOMov = "";
+                if (numGrado >= 10 && numGrado <= 12) {
+                    bachillerOMov = e.especialidad ? e.especialidad.toUpperCase() : "BACHILLER";
+                } else if (numGrado >= 7 && numGrado <= 9) {
+                    bachillerOMov = "PREMEDIA";
+                } else {
+                    bachillerOMov = "PRIMARIA";
+                }
+
+                const claveCombinacion = `${grp}__${mat}`;
+
+                if (!mapaGrupos[claveCombinacion]) {
+                    mapaGrupos[claveCombinacion] = {
+                        grupo: grp,
+                        materia: mat,
+                        bachiller: bachillerOMov,
+                        nivel: nivelActivo,
+                        alumnos: []
+                    };
+                }
+                mapaGrupos[claveCombinacion].alumnos.push(e);
+            });
+
+            const keys = Object.keys(mapaGrupos);
+            if (keys.length === 0) {
+                alert(`No hay estudiantes matriculados en el nivel ${nivelActivo} para generar el cuadro.`);
+                return;
+            }
+
+            let filasHTML = '';
+            let granMatricula = 0;
+            let granAprobados = 0;
+            let granFracasados = 0;
+            let granSinCal = 0;
+            let cantFilasGeneradas = 0;
+
+            // Recorrer las combinaciones de ese nivel
+            for (let k in mapaGrupos) {
+                const item = mapaGrupos[k];
+                const alumnos = item.alumnos;
+                let matricula = alumnos.length;
+                let aprobados = 0;
+                let fracasados = 0;
+                let sinCalificacion = 0;
+
+                alumnos.forEach(e => {
+                    const idNota = obtenerClaveNota(e.cedula, item.materia, item.grupo, periodo);
+                    const n = notas[idNota];
+                    const notaFinal = n ? parseFloat(n.final) : 0;
+                    if (!n || isNaN(notaFinal) || notaFinal === 0) {
+                        sinCalificacion++;
+                    } else if (notaFinal >= 3.0) {
+                        aprobados++;
+                    } else {
+                        fracasados++;
+                    }
+                });
+
+                if (matricula > 0) {
+                    cantFilasGeneradas++;
+                    granMatricula += matricula;
+                    granAprobados += aprobados;
+                    granFracasados += fracasados;
+                    granSinCal += sinCalificacion;
+
+                    const pctAprobados = ((aprobados / matricula) * 100).toFixed(1);
+                    const pctFracasados = ((fracasados / matricula) * 100).toFixed(1);
+                    const pctSinCal = ((sinCalificacion / matricula) * 100).toFixed(1);
+
+                    filasHTML += `
+                        <tr>
+                            <td style="text-align: left; padding-left: 6px;">
+                                <strong>${item.grupo}</strong> 
+                                <span style="font-size: 7.5pt; color: #334155;">(${item.materia} - ${item.bachiller})</span>
+                            </td>
+                            <td>${matricula}</td>
+                            <td>${aprobados}</td>
+                            <td>${pctAprobados}</td>
+                            <td>${fracasados}</td>
+                            <td>${pctFracasados}</td>
+                            <td>0</td><td>0.0</td>
+                            <td>${sinCalificacion}</td>
+                            <td>${pctSinCal}</td>
+                            <td>0</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            // Rellenar hasta 11 filas para conservar el formato MEDUCA en una sola hoja
+            const filasRestantes = Math.max(0, 11 - cantFilasGeneradas);
+            for (let i = 0; i < filasRestantes; i++) {
+                filasHTML += `<tr><td style="height:18px;"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+            }
+
+            const pctGranAprobados = granMatricula > 0 ? ((granAprobados / granMatricula) * 100).toFixed(1) : "0.0";
+            const pctGranFracasados = granMatricula > 0 ? ((granFracasados / granMatricula) * 100).toFixed(1) : "0.0";
+            const pctGranSinCal = granMatricula > 0 ? ((granSinCal / granMatricula) * 100).toFixed(1) : "0.0";
+
+            // Obtener materias únicas presentes en este nivel para la cabecera
+            const materiasDelNivel = Array.from(new Set(Object.values(mapaGrupos).map(m => m.materia))).join(' / ');
+
+            const html = `
+                <div class="hoja-impresion">
+                    <div class="encabezado-oficial">
+                        <h3>REPÚBLICA DE PANAMÁ</h3>
+                        <h3>MINISTERIO DE EDUCACIÓN</h3>
+                        <h4>${cfg.colegio}</h4>
+                        <h4>CUADRO DE RENDIMIENTO ACADÉMICO Y RENDICIÓN DE %</h4>
+                    </div>
+
+                    <table style="width: 100%; font-size: 8.5pt; margin-bottom: 5px;">
+                        <tr>
+                            <td><strong>PROFESOR:</strong> <u>${cfg.docente}</u></td>
+                            <td><strong>ASIGNATURA(S):</strong> <u>${materiasDelNivel}</u></td>
+                        </tr>
+                        <tr>
+                            <td><strong>AÑO LECTIVO:</strong> <u>${cfg.periodo}</u> &nbsp;&nbsp;&nbsp;&nbsp; <strong>TRIMESTRE:</strong> <u>${periodo}°</u></td>
+                            <td><strong>NIVEL:</strong> <u>${nivelActivo} (${clasificacionNivel})</u></td>
+                        </tr>
+                    </table>
+
+                    <table class="tabla-oficial" style="text-align: center; font-size: 8pt;">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">GRADO / ASIGNATURA</th>
+                                <th rowspan="2">MATRÍCULA</th>
+                                <th colspan="2">APROBADOS</th>
+                                <th colspan="2">FRACASADOS</th>
+                                <th colspan="2">FRAC. HASTA LA FECHA</th>
+                                <th colspan="2">SIN CALIFICACIÓN</th>
+                                <th rowspan="2">RETIRADOS</th>
+                            </tr>
+                            <tr>
+                                <th>TOTAL</th><th>%</th>
+                                <th>TOTAL</th><th>%</th>
+                                <th>TOTAL</th><th>%</th>
+                                <th>TOTAL</th><th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filasHTML}
+                            <tr style="font-weight: bold; background-color: #f1f5f9;">
+                                <td>TOTAL</td>
+                                <td>${granMatricula}</td>
+                                <td>${granAprobados}</td>
+                                <td>${pctGranAprobados}</td>
+                                <td>${granFracasados}</td>
+                                <td>${pctGranFracasados}</td>
+                                <td>0</td><td>0.0</td>
+                                <td>${granSinCal}</td>
+                                <td>${pctGranSinCal}</td>
+                                <td>0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="font-size: 8pt; margin-top: 5px; line-height: 1.3;">
+                        <strong>CAUSAS DEL RETIRO Y DE ALUMNOS SIN CALIFICACIÓN:</strong>
+                        <div style="border-bottom: 1px solid #000; height: 15px;"></div>
+                        <div style="border-bottom: 1px solid #000; height: 15px; margin-bottom: 3px;"></div>
+
+                        <strong>OBSERVACIONES:</strong><br>
+                        1. Todas las casillas deben ser totalizadas.<br>
+                        2. Los alumnos retirados no deben incluirse en la matrícula.<br>
+                        3. Los alumnos especiales deben incluirse en el grupo donde reciben las clases.<br>
+                        4. Las columnas de aprobados, fracasados y sin calificación deben coincidir con la matrícula.<br>
+                        5. El nombre del profesor debe ser escrito con letra imprenta.<br>
+                        6. Confeccionar original y dos copias.
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 25px; font-size: 8.5pt;">
+                        <div>Panamá, <u>${new Date().getDate()}</u> de <u>${['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'][new Date().getMonth()]}</u> de <u>${cfg.periodo}</u></div>
+                        <div style="text-align: center; border-top: 1px solid #000; width: 190px; padding-top: 4px;">
+                            Firma del Profesor
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; font-size: 7.5pt; color: #64748b; margin-top: 18px;">
+                        © Mgtr. Elkis H. Mora Ch. - Sistema de Gestión Escolar MEDUCA
+                    </div>
+                </div>
+            `;
+
+            ejecutarImpresionLimpia(html);
+        }
+    </script>
+</body>
+</html>
